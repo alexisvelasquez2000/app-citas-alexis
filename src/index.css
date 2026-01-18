@@ -330,3 +330,51 @@ input:focus {
     font-size: 2rem;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .no-print,
+  .toast-container,
+  .modal-overlay,
+  .nav-btn,
+  .header p {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .header h1 {
+    -webkit-text-fill-color: black !important;
+    background: none !important;
+    font-size: 24pt;
+  }
+
+  .calendar-day {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    min-height: 1.5in;
+    break-inside: avoid;
+  }
+
+  .day-number {
+    color: black !important;
+  }
+
+  .user-tag {
+    background: #eee !important;
+    color: black !important;
+    border: 1px solid #ccc;
+  }
+
+  .month-nav {
+    border: none !important;
+    background: none !important;
+  }
+}

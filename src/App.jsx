@@ -30,9 +30,12 @@ import {
   User,
   Calendar as CalendarIcon,
   X,
-  Bell
+  Bell,
+  Download,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -92,6 +95,51 @@ function App() {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportExcel = () => {
+    const monthName = format(currentDate, 'MMMM', { locale: es });
+    const year = format(currentDate, 'yyyy');
+
+    // Preparar datos: Solo días del mes actual que tengan citas
+    const daysInMonth = eachDayOfInterval({
+      start: monthStart,
+      end: monthEnd
+    });
+
+    const data = daysInMonth.map(day => {
+      const dayApps = getAppointmentsForDay(day);
+      if (dayApps.length === 0) return null;
+
+      const row = {
+        "Día": format(day, 'd'),
+        "Mes": monthName,
+        "Año": year
+      };
+
+      // Agregar nombres en columnas separadas
+      dayApps.forEach((app, index) => {
+        row[`Persona ${index + 1}`] = app.nombre;
+      });
+
+      return row;
+    }).filter(row => row !== null);
+
+    if (data.length === 0) {
+      addNotification("No hay citas para exportar en este mes", "info");
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Citas");
+
+    XLSX.writeFile(workbook, `Citas_${monthName}_${year}.xlsx`);
+    addNotification("Archivo Excel generado con éxito");
+  };
+
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
@@ -122,10 +170,16 @@ function App() {
         </motion.div>
       </header>
 
-      <div className="month-nav">
-        <button onClick={prevMonth} className="nav-btn"><ChevronLeft /></button>
+      <div className="month-nav no-print">
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={prevMonth} className="nav-btn"><ChevronLeft /></button>
+          <button onClick={nextMonth} className="nav-btn"><ChevronRight /></button>
+        </div>
         <h2>{format(currentDate, 'MMMM yyyy', { locale: es })}</h2>
-        <button onClick={nextMonth} className="nav-btn"><ChevronRight /></button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={handlePrint} className="nav-btn" title="Imprimir PDF"><Printer size={20} /></button>
+          <button onClick={handleExportExcel} className="nav-btn" title="Exportar Excel"><Download size={20} /></button>
+        </div>
       </div>
 
       <div className="calendar-grid">
